@@ -78,6 +78,7 @@ const MONTHS = [
 
 // ─── STATE ────────────────────────────────────────
 let currentMonthIdx = 0;
+let activeFilter    = null;
 
 // ─── HELPERS ──────────────────────────────────────
 function isToday(year, month, day) {
@@ -124,7 +125,13 @@ function createEmptyCell() {
   return cell;
 }
 
-// ─── SPAN EVENTS ──────────────────────────────────
+const DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+function isMobile() {
+  return window.innerWidth <= 600;
+}
+
+// ─── SPAN EVENTS (grid) ───────────────────────────
 function renderSpanEvents(data, grid) {
   data.spanEvents.forEach(se => {
     const startCell = grid.children[data.startWeekday + se.startDay - 1];
@@ -147,25 +154,76 @@ function renderSpanEvents(data, grid) {
   });
 }
 
+// ─── GRID VIEW ────────────────────────────────────
+function renderGrid(data, container) {
+  container.className = 'calendar-grid';
+
+  const totalSlots = Math.ceil((data.startWeekday + data.totalDays) / 7) * 7;
+  for (let i = 0; i < totalSlots; i++) {
+    const dayNum = i - data.startWeekday + 1;
+    const isValid = dayNum >= 1 && dayNum <= data.totalDays;
+    container.appendChild(isValid ? createDayCell(dayNum, i, data) : createEmptyCell());
+  }
+
+  renderSpanEvents(data, container);
+}
+
+// ─── AGENDA VIEW (mobile) ─────────────────────────
+function renderAgenda(data, container) {
+  container.className = 'agenda-view';
+
+  const daysWithEvents = new Set([
+    ...Object.keys(data.events).map(Number),
+    ...data.spanEvents.map(se => se.startDay),
+  ]);
+
+  [...daysWithEvents].sort((a, b) => a - b).forEach(dayNum => {
+    const weekday = (data.startWeekday + dayNum - 1) % 7;
+    const today   = isToday(data.year, data.month, dayNum);
+
+    const dayEl = document.createElement('div');
+    dayEl.className = `agenda-day${today ? ' today' : ''}`;
+
+    const dateEl = document.createElement('div');
+    dateEl.className = 'agenda-date';
+    dateEl.innerHTML =
+      `<span class="agenda-day-num">${dayNum}</span>` +
+      `<span class="agenda-day-name">${DAY_NAMES[weekday]}</span>`;
+
+    const eventsEl = document.createElement('div');
+    eventsEl.className = 'agenda-events';
+
+    (data.events[dayNum] ?? []).forEach(ev =>
+      eventsEl.appendChild(createEventEl(ev, dayNum, data))
+    );
+
+    data.spanEvents.filter(se => se.startDay === dayNum).forEach(se =>
+      eventsEl.appendChild(createEventEl(se, dayNum, data))
+    );
+
+    dayEl.appendChild(dateEl);
+    dayEl.appendChild(eventsEl);
+    container.appendChild(dayEl);
+  });
+}
+
 // ─── RENDER ───────────────────────────────────────
 function renderCalendar() {
-  const data = MONTHS[currentMonthIdx];
-  const grid = document.getElementById('calendarGrid');
-  grid.innerHTML = '';
+  const data      = MONTHS[currentMonthIdx];
+  const container = document.getElementById('calendarGrid');
+  container.innerHTML = '';
+  activeFilter = null;
+  document.querySelectorAll('.legend-item').forEach(el => {
+    el.classList.remove('active', 'dimmed');
+  });
 
   document.querySelector('.title').innerHTML =
     `Calendário de <span>Ativações</span><br>` +
     `<small style="font-size:0.45em;letter-spacing:3px;color:var(--text-muted)">${data.label}</small>`;
 
-  const totalSlots = Math.ceil((data.startWeekday + data.totalDays) / 7) * 7;
+  document.querySelector('.weekdays').style.display = isMobile() ? 'none' : '';
 
-  for (let i = 0; i < totalSlots; i++) {
-    const dayNum = i - data.startWeekday + 1;
-    const isValid = dayNum >= 1 && dayNum <= data.totalDays;
-    grid.appendChild(isValid ? createDayCell(dayNum, i, data) : createEmptyCell());
-  }
-
-  renderSpanEvents(data, grid);
+  isMobile() ? renderAgenda(data, container) : renderGrid(data, container);
 }
 
 // ─── MODAL ────────────────────────────────────────
@@ -198,13 +256,12 @@ document.getElementById('nextMonth').addEventListener('click', () => {
 });
 
 // ─── FILTER ───────────────────────────────────────
-let activeFilter = null;
 
 function applyFilter(type) {
   const grid = document.getElementById('calendarGrid');
   activeFilter = activeFilter === type ? null : type;
 
-  grid.className = activeFilter ? `calendar-grid filter-active` : 'calendar-grid';
+  grid.classList.toggle('filter-active', activeFilter !== null);
 
   document.querySelectorAll('.event').forEach(el => {
     const matches = !activeFilter || el.classList.contains(activeFilter);
@@ -220,6 +277,13 @@ function applyFilter(type) {
 
 document.querySelectorAll('.legend-item').forEach(el => {
   el.addEventListener('click', () => applyFilter(el.dataset.type));
+});
+
+// ─── RESIZE ───────────────────────────────────────
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderCalendar, 200);
 });
 
 // ─── INIT ─────────────────────────────────────────
