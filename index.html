@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calendário de Ativações</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="bg-noise"></div>
+
+  <header class="header">
+    <div class="header-inner">
+      <div class="nav-arrows">
+        <button class="nav-btn" id="prevMonth">&#8592;</button>
+        <h1 class="title">Calendário de <span>Ativações</span></h1>
+        <button class="nav-btn" id="nextMonth">&#8594;</button>
+      </div>
+      <div class="legend">
+        <span class="legend-item presencial" data-type="presencial">● Presencial</span>
+        <span class="legend-item online"     data-type="online">● Online</span>
+        <span class="legend-item happy"      data-type="happy">● Happy Liga</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="calendar-wrap">
+    <div class="weekdays">
+      <div>Dom</div>
+      <div>Seg</div>
+      <div>Ter</div>
+      <div>Qua</div>
+      <div>Qui</div>
+      <div>Sex</div>
+      <div>Sáb</div>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div class="modal-tag" id="modalTag"></div>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <p class="modal-date" id="modalDate"></p>
+      <p class="modal-time" id="modalTime"></p>
+      <p class="modal-desc" id="modalDesc"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
