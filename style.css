@@ -400,6 +400,24 @@ body {
   letter-spacing: 0.2px;
 }
 
+/* ── FOOTER ── */
+.footer {
+  text-align: center;
+  padding: 24px 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-top: 1px solid rgba(99,202,222,0.1);
+  position: relative;
+  z-index: 2;
+}
+.footer span {
+  color: var(--neon-purple);
+  font-weight: 700;
+}
+
 /* ── ANIMATIONS ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(14px); }
